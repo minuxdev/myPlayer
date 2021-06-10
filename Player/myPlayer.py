@@ -2,6 +2,7 @@ from pygame import mixer
 from tkinter import *
 from PIL import ImageTk, Image
 import os
+from time import sleep
 
 
 mixer.init()
@@ -138,10 +139,8 @@ def GetPos():
 
     time = mixer.music.get_pos() // 1000
 
-    if time <= 0:
-        counter = 0
     if time == 0:
-        current = 0
+        counter = current = 0
 
     elif time % 60 == 0:
 
@@ -166,27 +165,38 @@ def EndEvent():
         pass
     else:
         if mzk == 0:
+            sleep(0.5)
             mixer.music.load(mList[mzk])
             mixer.music.play()
+
+            mzk = mList.index(mList[0])
 
         elif mixer.music.get_pos() <= 0 and mzk < len(mList):
             mixer.music.load(mList[mzk + 1])
             mixer.music.play()
-            print(mList[mzk], mList[mzk + 1])
+            file_name.config(text=mzkName[mzk])
 
         elif mzk == len(mList) and mixer.music.get_busy() is False:
             exit()
 
-    master.after(5000, EndEvent)
+        mzk = mList.index(mList[mzk]) + 1
+
+    master.after(1000, EndEvent)
 
 
 def Plist():
-    global plist
+    play_list = Top()
 
-    plist.delete(0, END)
+    play_list.lbox.delete(0, END)
     for item in mList:
-        plist.insert(END, item)
+        play_list.lbox.insert(END, item)
 
+    play_list.lbox.bind("<Double 1>", Selected_Song)
+
+
+def Selected_Song(event):
+
+    print(event)
 
 #==================================================#
 #              FRAMES AND WIDGETS                  #
@@ -251,16 +261,21 @@ master.config(menu=menuBar)
 #          TOPLEVEL & LISTBOX WIDGET               #
 #==================================================#
 
-top = Toplevel(master)
-plist = Listbox(top)
-plist.grid(padx=5, pady=5, sticky="news")
-Grid.rowconfigure(top, 0, weight=1)
-Grid.columnconfigure(top, 0, weight=1)
+class Top(Toplevel):
+    def __init__(self):
+        super().__init__()
+
+        self.top = Toplevel()
+        self.lbox = Listbox(self.top)
+        self.lbox.grid(padx=5, pady=5, sticky="news")
+        Grid.rowconfigure(self.top, 0, weight=1)
+        Grid.columnconfigure(self.top, 0, weight=1)
 
 
 GetPos()
 
 EndEvent()
+
 
 master.mainloop()
 
