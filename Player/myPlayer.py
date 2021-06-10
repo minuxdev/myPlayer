@@ -12,6 +12,9 @@ master.minsize(250, 300)
 master.resizable(False, False)
 master.config(bg='black')
 
+#=================================================#
+#                   VARIABLES                     #
+#=================================================#
 
 iDir = os.path.abspath(r'.')
 
@@ -47,18 +50,27 @@ for root, dirs, files in os.walk(iDir):
             path, name = os.path.split(mFile)
             mList.append(mFile)
             mzkName.append(name)
+        elif '.mp3' in file:
+            mFile = os.path.join(root, file)
+            path, name = os.path.split(mFile)
+            mList.append(mFile)
+            mzkName.append(name)
 
 # Loading Icon Buttons
-backIcon = ImageTk.PhotoImage(Image.open(ic[1]))
-playIcon = ImageTk.PhotoImage(Image.open(ic[2]))
-pauseIcon = ImageTk.PhotoImage(Image.open(ic[3]))
-nextIcon = ImageTk.PhotoImage(Image.open(ic[0]))
+backIcon = ImageTk.PhotoImage(Image.open(ic[0]))
+playIcon = ImageTk.PhotoImage(Image.open(ic[3]))
+pauseIcon = ImageTk.PhotoImage(Image.open(ic[2]))
+nextIcon = ImageTk.PhotoImage(Image.open(ic[1]))
 
 
 icount = mzk = counter = current = 0
 
 iFile = iList[icount]
 
+
+#=================================================#
+#                   FUNCTIONS                     #
+#=================================================#
 
 # Creating Functions
 def Back():
@@ -85,8 +97,8 @@ def Back():
 
 def Play():
 
-	mixer.music.load(mList[mzk])
-	mixer.music.play()
+    mixer.music.load(mList[mzk])
+    mixer.music.play()
 
 
 def Pause():
@@ -102,63 +114,89 @@ def Pause():
 
 def Next():
 
-	global icount, iFile, mFile, mzk
+    global icount, iFile, mFile, mzk
 
-	if mList.index(mList[mzk]) + 1 == len(mList):
-	    pass
+    if mList.index(mList[mzk]) + 1 == len(mList):
+        pass
 
-	else:
-	    mzk += 1
-	    mixer.music.load(mList[mzk])
-	    mixer.music.play()
-	    if icount + 1 == len(iList):
-	        pass
-	    else:
-	        icount += 1
-	        iFile = iList[icount]
+    else:
+        mzk += 1
+        mixer.music.load(mList[mzk])
+        mixer.music.play()
+        if icount + 1 == len(iList):
+            pass
+        else:
+            icount += 1
+            iFile = iList[icount]
 
-	    imgViewer.config(image=iFile)
-	    file_name.config(text=mzkName[mzk])
+        imgViewer.config(image=iFile)
+        file_name.config(text=mzkName[mzk])
 
 
 def GetPos():
-	global counter, current
+    global counter, current
 
-	time = mixer.music.get_pos() // 1000
+    time = mixer.music.get_pos() // 1000
 
-	if time <= 0:
-		counter = 0
-	if time == 0: current = 0
+    if time <= 0:
+        counter = 0
+    if time == 0:
+        current = 0
 
-	elif time % 60 == 0:
+    elif time % 60 == 0:
 
-		counter += 1
-		current = 0
+        counter += 1
+        current = 0
 
-	if mixer.music.get_busy():
-		current += 1
-	else:
-		pass
+    if mixer.music.get_busy():
+        current += 1
+    else:
+        pass
 
-	master.after(1000, GetPos)
-	freeLabel.config(
-	    text=f"Progress: {counter}.{current} min",
-	    font='Mono 8 italic', fg='white')
-    
+    master.after(1000, GetPos)
+    freeLabel.config(
+        text=f"Progress: {counter}.{current} min",
+        font='Mono 8 italic', fg='white')
+
 
 def EndEvent():
+    global mzk
     # print(mixer.music.get_endevent())
-    if mixer.music.get_endevent() == True:
-        print("Stoped")
+    if mixer.music.get_busy():
+        pass
     else:
-    	print("Playing")
-    master.after(1000, EndEvent)
+        if mzk == 0:
+            mixer.music.load(mList[mzk])
+            mixer.music.play()
+
+        elif mixer.music.get_pos() <= 0 and mzk < len(mList):
+            mixer.music.load(mList[mzk + 1])
+            mixer.music.play()
+            print(mList[mzk], mList[mzk + 1])
+
+        elif mzk == len(mList) and mixer.music.get_busy() is False:
+            exit()
+
+    master.after(5000, EndEvent)
+
+
+def Plist():
+    global plist
+
+    plist.delete(0, END)
+    for item in mList:
+        plist.insert(END, item)
+
+
+#==================================================#
+#              FRAMES AND WIDGETS                  #
+#==================================================#
 
 
 # Defining frames
 iFrame = Frame(master)
 nameFrame = Frame(master)
-ctrlFrame = Frame(master, bg='black',)
+ctrlFrame = Frame(master, bg='black', width=15, height=1)
 
 
 # Placing frames into master window
@@ -177,7 +215,7 @@ nameFrame.grid(column=0, padx=20, pady=2, sticky='ew')
 ctrlFrame.grid(column=0, padx=20, pady=2, sticky='ew')
 
 
-imgViewer = Label(iFrame, bg='black', image=iFile, bd=2, relief='sunk')
+imgViewer = Label(iFrame, bg='black', image=iFile)
 imgViewer.grid(row=0, column=0, sticky='news')
 
 file_name = Label(nameFrame, font='Mono 9',
@@ -197,7 +235,32 @@ pause.grid(row=0, column=2, padx=5, pady=2, sticky='we')
 Next.grid(row=0, column=3, padx=5, pady=2, sticky='we')
 freeLabel.grid(row=1, column=0, columnspan=4, sticky='news')
 
+
+# Adding MenuBar
+menuBar = Menu(master, bg='black', fg="white", bd=0)
+
+file = Menu(menuBar, tearoff=0)
+file.add_command(label="PlayList", command=Plist)
+
+menuBar.add_cascade(label="File", menu=file)
+
+master.config(menu=menuBar)
+
+
+#==================================================#
+#          TOPLEVEL & LISTBOX WIDGET               #
+#==================================================#
+
+top = Toplevel(master)
+plist = Listbox(top)
+plist.grid(padx=5, pady=5, sticky="news")
+Grid.rowconfigure(top, 0, weight=1)
+Grid.columnconfigure(top, 0, weight=1)
+
+
 GetPos()
+
+EndEvent()
 
 master.mainloop()
 
