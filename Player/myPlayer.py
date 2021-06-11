@@ -169,15 +169,14 @@ def EndEvent():
             mixer.music.load(mList[mzk])
             mixer.music.play()
 
-            mzk = mList.index(mList[0])
-
         elif mixer.music.get_pos() <= 0 and mzk < len(mList):
-            mixer.music.load(mList[mzk + 1])
-            mixer.music.play()
-            file_name.config(text=mzkName[mzk])
-
-        elif mzk == len(mList) and mixer.music.get_busy() is False:
-            exit()
+            try:
+                mixer.music.load(mList[mzk + 1])
+                mixer.music.play()
+                file_name.config(text=mzkName[mzk])
+            except IndexError:
+                print("Last Song Ended")
+                master.destroy()
 
         mzk = mList.index(mList[mzk]) + 1
 
@@ -185,18 +184,8 @@ def EndEvent():
 
 
 def Plist():
-    play_list = Top()
+    Top(mList, mzkName, file_name)
 
-    play_list.lbox.delete(0, END)
-    for item in mList:
-        play_list.lbox.insert(END, item)
-
-    play_list.lbox.bind("<Double 1>", Selected_Song)
-
-
-def Selected_Song(event):
-
-    print(event)
 
 #==================================================#
 #              FRAMES AND WIDGETS                  #
@@ -262,14 +251,40 @@ master.config(menu=menuBar)
 #==================================================#
 
 class Top(Toplevel):
-    def __init__(self):
+    def __init__(self, song_list, name_list, label_name):
         super().__init__()
 
-        self.top = Toplevel()
-        self.lbox = Listbox(self.top)
+        self.song_list = song_list
+        self.name_list = name_list
+        self.label_name = label_name
+
+        self.config(width=400, height=300)
+        self.grab_set()
+
+        self.lbox = Listbox(self)
         self.lbox.grid(padx=5, pady=5, sticky="news")
-        Grid.rowconfigure(self.top, 0, weight=1)
-        Grid.columnconfigure(self.top, 0, weight=1)
+
+        Grid.rowconfigure(self, 0, weight=1)
+        Grid.columnconfigure(self, 0, weight=1)
+
+        self.lbox.bind("<Double 1>", self.Play_selected_song)
+
+        self.Play_list()
+
+    def Play_list(self):
+
+        self.lbox.delete(0, END)
+
+        for item in self.name_list:
+            self.lbox.insert(END, item)
+
+    def Play_selected_song(self, event):
+
+        print(event)
+        song = self.lbox.curselection()[0]
+        mixer.music.load(self.song_list[song])
+        mixer.music.play()
+        self.label_name.config(text=self.name_list[song])
 
 
 GetPos()
