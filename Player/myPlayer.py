@@ -2,7 +2,6 @@ from pygame import mixer
 from tkinter import *
 from PIL import ImageTk, Image
 import os
-from time import sleep
 
 
 mixer.init()
@@ -30,21 +29,8 @@ for root, dirs, files in os.walk(iDir):
 
     for file in files:
         if '.png' in file:
-            if 'back' in file:
-                ic.append(os.path.abspath(f'icons/{file}'))
-
-            elif 'play' in file:
-                ic.append(os.path.abspath(f'icons/{file}'))
-
-            elif 'pause' in file:
-                ic.append(os.path.abspath(f'icons/{file}'))
-
-            elif 'next' in file:
-                ic.append(os.path.abspath(f'icons/{file}'))
-
-            else:
-                imgFile = os.path.join(root, file)
-                iList.append(ImageTk.PhotoImage(Image.open(imgFile)))
+            imgFile = os.path.join(root, file)
+            iList.append(ImageTk.PhotoImage(Image.open(imgFile)))
 
         elif '.wav' in file:
             mFile = os.path.join(root, file)
@@ -57,11 +43,13 @@ for root, dirs, files in os.walk(iDir):
             mList.append(mFile)
             mzkName.append(name)
 
+
 # Loading Icon Buttons
-backIcon = ImageTk.PhotoImage(Image.open(ic[0]))
-playIcon = ImageTk.PhotoImage(Image.open(ic[3]))
-pauseIcon = ImageTk.PhotoImage(Image.open(ic[2]))
-nextIcon = ImageTk.PhotoImage(Image.open(ic[1]))
+backIcon = ImageTk.PhotoImage(Image.open(os.path.abspath("./icons/back.png")))
+playIcon = ImageTk.PhotoImage(Image.open(os.path.abspath("./icons/play.png")))
+pauseIcon = ImageTk.PhotoImage(Image.open(
+    os.path.abspath("./icons/pause.png")))
+nextIcon = ImageTk.PhotoImage(Image.open(os.path.abspath("./icons/next.png")))
 
 
 icount = mzk = counter = current = 0
@@ -70,10 +58,9 @@ iFile = iList[icount]
 
 
 #=================================================#
-#                   FUNCTIONS                     #
+#             CONTROL FUNCTIONS                   #
 #=================================================#
 
-# Creating Functions
 def Back():
 
     global icount, iFile, mzk
@@ -134,6 +121,104 @@ def Next():
         file_name.config(text=mzkName[mzk])
 
 
+#=================================================#
+#             MENU BAR FUNCTIONS                  #
+#=================================================#
+
+def Plist():
+    Top(mList, mzkName, file_name)
+
+
+def Quit():
+    master.destroy()
+
+
+def Version():
+    win = Tk()
+    win.title("Version Info")
+    win.minsize(200, 100)
+
+    ver = '''
+Name: myPlayer
+Version: 0.1
+Code Date: Jun 09 2021
+Languages: English UK
+Coded in: Python & Tkinter
+
+    '''
+
+    Message(win, justify="left", font="Mono 10 italic",
+            text=ver, anchor="w").pack()
+
+
+def Author():
+    win = Tk()
+    win.title("Version Info")
+    win.minsize(200, 100)
+
+    ver = '''
+Author Name: Minux
+Company: Minux_Dev Inc.
+
+Is an authodidate programmer
+who is still learning the basics
+about programming in general.
+
+    '''
+
+    Message(win, justify="left", font="Mono 10 italic",
+            text=ver, anchor="w").pack()
+
+
+def White():
+    master.config(bg='white')
+    ctrlFrame.config(bg="white")
+    file_name.config(bg="white", fg="black")
+    freeLabel.config(bg="white", fg="black")
+    menuBar.config(bg="white", fg="black")
+    time_stamp.config(bg="white")
+
+
+def Red():
+    master.config(bg='red')
+    ctrlFrame.config(bg="red")
+    file_name.config(bg="red", fg="black")
+    freeLabel.config(bg="red", fg="black")
+    menuBar.config(bg="red", fg="black")
+    time_stamp.config(bg="red")
+
+
+def Green():
+    master.config(bg='green')
+    ctrlFrame.config(bg="green")
+    file_name.config(bg="green", fg="black")
+    freeLabel.config(bg="green", fg="black")
+    menuBar.config(bg="green", fg="black")
+    time_stamp.config(bg="green")
+
+
+def Blue():
+    master.config(bg='blue')
+    ctrlFrame.config(bg="blue")
+    file_name.config(bg="blue", fg="white")
+    freeLabel.config(bg="blue", fg="white")
+    menuBar.config(bg="blue", fg="white")
+    time_stamp.config(bg="blue")
+
+
+def Default():
+
+    master.config(bg='black')
+    menuBar.config(bg='black', fg="white")
+    ctrlFrame.config(bg="black")
+    file_name.config(bg="black", fg="white")
+    freeLabel.config(bg="black", fg="white")
+    time_stamp.config(bg="black")
+
+
+#=================================================#
+#              FUNCTIONS IN LOOP                  #
+#=================================================#
 def GetPos():
     global counter, current
 
@@ -153,8 +238,8 @@ def GetPos():
         pass
 
     master.after(1000, GetPos)
-    freeLabel.config(
-        text=f"Progress: {counter}.{current} min",
+    time_stamp.config(
+        text=f"Duration: {counter}:{current} min",
         font='Mono 8 italic', fg='white')
 
 
@@ -165,7 +250,6 @@ def EndEvent():
         pass
     else:
         if mzk == 0:
-            sleep(0.5)
             mixer.music.load(mList[mzk])
             mixer.music.play()
 
@@ -183,16 +267,10 @@ def EndEvent():
     master.after(1000, EndEvent)
 
 
-def Plist():
-    Top(mList, mzkName, file_name)
-
-
 #==================================================#
 #              FRAMES AND WIDGETS                  #
 #==================================================#
 
-
-# Defining frames
 iFrame = Frame(master)
 nameFrame = Frame(master)
 ctrlFrame = Frame(master, bg='black', width=15, height=1)
@@ -222,6 +300,11 @@ file_name = Label(nameFrame, font='Mono 9',
 file_name.pack(fill='both')
 
 
+time_stamp = Label(nameFrame, font='Mono 9',
+                   bg='black', fg='white')
+time_stamp.pack(fill="x")
+
+
 back = Button(ctrlFrame, image=backIcon, bg='black', bd=0, command=Back)
 play = Button(ctrlFrame, image=playIcon, bg='black', bd=0, command=Play)
 pause = Button(ctrlFrame, image=pauseIcon, bg='black', bd=0, command=Pause)
@@ -235,13 +318,32 @@ Next.grid(row=0, column=3, padx=5, pady=2, sticky='we')
 freeLabel.grid(row=1, column=0, columnspan=4, sticky='news')
 
 
-# Adding MenuBar
+#==================================================#
+#                   MENU BAR                       #
+#==================================================#
 menuBar = Menu(master, bg='black', fg="white", bd=0)
 
 file = Menu(menuBar, tearoff=0)
 file.add_command(label="PlayList", command=Plist)
+file.add_separator()
+file.add_command(label="Exit", command=Quit)
+
+view = Menu(menuBar, tearoff=0)
+# view.add_command(label="White", command=White)
+view.add_command(label="Green", command=Green)
+view.add_command(label="Red", command=Red)
+view.add_command(label="Blue", command=Blue)
+view.add_separator()
+view.add_command(label="Default", command=Default)
+
+
+about = Menu(menuBar, tearoff=0)
+about.add_command(label="Version", command=Version)
+about.add_command(label="Author", command=Author)
 
 menuBar.add_cascade(label="File", menu=file)
+menuBar.add_cascade(label="View", menu=view)
+menuBar.add_cascade(label="About", menu=about)
 
 master.config(menu=menuBar)
 
@@ -275,7 +377,8 @@ class Top(Toplevel):
 
         self.lbox.delete(0, END)
 
-        for item in self.name_list:
+        for n, item in enumerate(self.name_list):
+            item = f"{n}. {item}"
             self.lbox.insert(END, item)
 
     def Play_selected_song(self, event):
