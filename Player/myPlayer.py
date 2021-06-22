@@ -1,16 +1,25 @@
 from pygame import mixer
+from TkinterDnD2 import DND_FILES, TkinterDnD
 from tkinter import *
+from tkinter import ttk
 from PIL import ImageTk, Image
 import os
 
 
 mixer.init()
 
-master = Tk()
+master = TkinterDnD.Tk()
+
 master.title("myPlayer")
 master.minsize(250, 300)
 master.resizable(False, False)
 master.config(bg='black')
+
+# Defining them (available native themes [clam, xpnative, 
+# vista, classic, winnative, alt])
+
+theme = ttk.Style()
+theme.theme_use("alt")
 
 #=================================================#
 #                   VARIABLES                     #
@@ -18,31 +27,35 @@ master.config(bg='black')
 
 iDir = os.path.abspath(r'.')
 
-print(iDir)
+ImageList = []
+SongList = []
+NameList = []
 
-iList = []
-mList = []
-mzkName = []
-ic = []
+def LoadingFiles(images, songs, names):
 
-for root, dirs, files in os.walk(iDir):
+    for root, dirs, files in os.walk(iDir):
 
-    for file in files:
-        if '.png' in file:
-            imgFile = os.path.join(root, file)
-            iList.append(ImageTk.PhotoImage(Image.open(imgFile)))
+        for file in files:
+            if '.png' in file:
+                imgFile = os.path.join(root, file)
+                images.append(ImageTk.PhotoImage(Image.open(imgFile)))
 
-        elif '.wav' in file:
-            mFile = os.path.join(root, file)
-            path, name = os.path.split(mFile)
-            mList.append(mFile)
-            mzkName.append(name)
-        elif '.mp3' in file:
-            mFile = os.path.join(root, file)
-            path, name = os.path.split(mFile)
-            mList.append(mFile)
-            mzkName.append(name)
+            elif '.wav' in file:
+                mFile = os.path.join(root, file)
+                path, name = os.path.split(mFile)
+                songs.append(mFile)
+                names.append(name)
+            elif '.mp3' in file:
+                mFile = os.path.join(root, file)
+                path, name = os.path.split(mFile)
+                songs.append(mFile)
+                names.append(name)
 
+    return images, songs, names
+    
+
+
+iList, mList, mzkName = LoadingFiles(ImageList, SongList, NameList)
 
 # Loading Icon Buttons
 backIcon = ImageTk.PhotoImage(Image.open(os.path.abspath("./icons/back.png")))
@@ -91,7 +104,7 @@ def Play():
 
 def Pause():
     GetPos()
-    global icount, iFile, mFile, mzk
+    global icount, iFile, mzk
 
     if mixer.music.get_busy():
         mixer.music.pause()
@@ -102,7 +115,7 @@ def Pause():
 
 def Next():
 
-    global icount, iFile, mFile, mzk
+    global icount, iFile, mzk
 
     if mList.index(mList[mzk]) + 1 == len(mList):
         pass
@@ -127,6 +140,7 @@ def Next():
 
 def Plist():
     Top(mList, mzkName, file_name)
+    
 
 
 def Quit():
@@ -234,8 +248,6 @@ def GetPos():
 
     if mixer.music.get_busy():
         current += 1
-    else:
-        pass
 
     master.after(1000, GetPos)
     time_stamp.config(
@@ -245,7 +257,7 @@ def GetPos():
 
 def EndEvent():
     global mzk
-    # print(mixer.music.get_endevent())
+
     if mixer.music.get_busy():
         pass
     else:
@@ -257,7 +269,7 @@ def EndEvent():
             try:
                 mixer.music.load(mList[mzk + 1])
                 mixer.music.play()
-                file_name.config(text=mzkName[mzk])
+                file_name.config(text=mzkName[mzk + 1])
             except IndexError:
                 print("Last Song Ended")
                 master.destroy()
@@ -371,6 +383,9 @@ class Top(Toplevel):
 
         self.lbox.bind("<Double 1>", self.Play_selected_song)
 
+        self.lbox.drop_target_register(DND_FILES)
+        self.lbox.dnd_bind("<<Drop>>", self.Add_File)
+
         self.Play_list()
 
     def Play_list(self):
@@ -378,22 +393,38 @@ class Top(Toplevel):
         self.lbox.delete(0, END)
 
         for n, item in enumerate(self.name_list):
-            item = f"{n}. {item}"
+            item = f"{n+1}. {item}"
             self.lbox.insert(END, item)
 
     def Play_selected_song(self, event):
+        try:
+            song = self.lbox.curselection()[0]
+            mixer.music.load(self.song_list[song])
+            mixer.music.play()
+            self.label_name.config(text=self.name_list[song])
+        except IndexError:
+            pass
+    
+    def Add_File(self, event):
+        if ".wav" not in event.data:
+            print("File not recognized!")
+            print(event.data)
+        else:
+            file = event.data[1:-1]
+            name = file.split("/")[-1]
+            self.name_list.append(name)
+            self.song_list.append(file)
+            self.lbox.insert("end", name)
 
-        print(event)
-        song = self.lbox.curselection()[0]
-        mixer.music.load(self.song_list[song])
-        mixer.music.play()
-        self.label_name.config(text=self.name_list[song])
+            print(self.song_list)
+
 
 
 GetPos()
 
 EndEvent()
 
+master.update()
 
 master.mainloop()
 
