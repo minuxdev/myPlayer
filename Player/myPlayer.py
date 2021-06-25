@@ -129,6 +129,8 @@ def Next():
             file_name.config(text=mzkName[mzk])
         except IndexError:
             pass
+        except:
+            mzk -= 1
 
 
 def VolumeUp(event):
@@ -434,7 +436,14 @@ class Top(Toplevel):
         if ".wav" not in event.data:
             pass
         else:
-            file = event.data[1:-1]
+            dropped = event.data[1:]
+            if dropped[-1] == "}":
+                print("If Statement")
+                file = dropped[:-1]
+            else:
+                print("Else Statement")
+                file = dropped
+
             name = file.split("/")[-1]
             mzkName.append(name)
             mList.append(file)
