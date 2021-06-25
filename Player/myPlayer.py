@@ -25,13 +25,9 @@ theme.theme_use("alt")
 #                   VARIABLES                     #
 #=================================================#
 
-iDir = os.path.abspath(r'.')
-
-
-
 def LoadingFiles(images, songs, names):
 
-    for root, dirs, files in os.walk(iDir):
+    for root, dirs, files in os.walk(os.path.abspath(r'.')):
 
         for file in files:
             if '.png' in file:
@@ -64,11 +60,9 @@ pauseIcon = ImageTk.PhotoImage(Image.open(
     os.path.abspath("./icons/pause.png")))
 nextIcon = ImageTk.PhotoImage(Image.open(os.path.abspath("./icons/next.png")))
 
-
 icount = mzk = counter = current = 0
 vol = 0.9921875
 iFile = iList[icount]
-
 
 #=================================================#
 #             CONTROL FUNCTIONS                   #
@@ -300,7 +294,7 @@ def EndEvent():
             except IndexError:
                 print("Last Song Ended")
                 # master.destroy()
-        if mList.index(mList[mzk]) < len(mList):
+        if mzk < len(mList):
             mzk = mList.index(mList[mzk]) + 1
 
     master.after(1000, EndEvent)
@@ -336,12 +330,12 @@ imgViewer.grid(row=0, column=0, sticky='news')
 imgViewer.dnd_bind("<Double - 1>", VolumeUp)
 imgViewer.dnd_bind("<Button - 3>", VolumeDown)
 
-file_name = Label(nameFrame, font='Mono 9',
-                  text=mzkName[0], bg='black', fg='white')
+file_name = Label(nameFrame, justify="left", width=16, font='Mono 8 italic',
+                  text=mzkName[mzk], bg='black', fg='white')
 file_name.pack(fill='both')
 
 
-time_stamp = Label(nameFrame, font='Mono 9',
+time_stamp = Label(nameFrame, font='Mono 9 italic',
                    bg='black', fg='white')
 time_stamp.pack(fill="x")
 
@@ -415,6 +409,7 @@ class Top(Toplevel):
 
         self.lbox.drop_target_register(DND_FILES)
         self.lbox.dnd_bind("<<Drop>>", self.Add_File)
+        self.lbox.bind("<Key>", self.ShortCuts)
 
         self.Play_list()
 
@@ -437,8 +432,7 @@ class Top(Toplevel):
     
     def Add_File(self, event):
         if ".wav" not in event.data:
-            print("File not recognized!")
-            print(event.data)
+            pass
         else:
             file = event.data[1:-1]
             name = file.split("/")[-1]
@@ -446,8 +440,26 @@ class Top(Toplevel):
             mList.append(file)
             self.lbox.insert("end", name)
         print(mList)
+    
+    def ShortCuts(self, event):
+        print(event)
+        item = self.lbox.curselection()[0]
+        if event.char == "\x7f":
+            print(item)
+            self.lbox.delete(item)
+            mList.pop(item)
+            self.name_list.pop(item)
+            print(mList)
+
+        elif event.char == "\r":
+            mixer.music.load(mList[item])
+            mixer.music.play()
+            self.label_name.config(text=self.name_list[item])
+            mzk = self.name_list.index(mList[item])
+            print(len(mzk))
 
 
+master.focus()
 
 GetPos()
 
