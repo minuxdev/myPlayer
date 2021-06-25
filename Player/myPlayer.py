@@ -27,9 +27,7 @@ theme.theme_use("alt")
 
 iDir = os.path.abspath(r'.')
 
-ImageList = []
-SongList = []
-NameList = []
+
 
 def LoadingFiles(images, songs, names):
 
@@ -54,7 +52,9 @@ def LoadingFiles(images, songs, names):
     return images, songs, names
     
 
-
+ImageList = []
+SongList = []
+NameList = []
 iList, mList, mzkName = LoadingFiles(ImageList, SongList, NameList)
 
 # Loading Icon Buttons
@@ -66,7 +66,7 @@ nextIcon = ImageTk.PhotoImage(Image.open(os.path.abspath("./icons/next.png")))
 
 
 icount = mzk = counter = current = 0
-
+vol = 0.9921875
 iFile = iList[icount]
 
 
@@ -121,17 +121,45 @@ def Next():
         pass
 
     else:
-        mzk += 1
-        mixer.music.load(mList[mzk])
-        mixer.music.play()
-        if icount + 1 == len(iList):
-            pass
-        else:
-            icount += 1
-            iFile = iList[icount]
+        try:
+            mzk += 1
+            mixer.music.load(mList[mzk])
+            mixer.music.play()
+            if icount + 1 == len(iList):
+                pass
+            else:
+                icount += 1
+                iFile = iList[icount]
 
-        imgViewer.config(image=iFile)
-        file_name.config(text=mzkName[mzk])
+            imgViewer.config(image=iFile)
+            file_name.config(text=mzkName[mzk])
+        except IndexError:
+            pass
+
+
+def VolumeUp(event):
+    global vol
+
+    print(mixer.music.get_volume())
+    
+    if mixer.music.get_volume() >= 0.9899:
+        vol_state = "Volume: 100%"
+        freeLabel.config(text=vol_state)
+    else:
+        vol = mixer.music.get_volume() + 0.1
+        mixer.music.set_volume(vol)
+        freeLabel.config(text=f"Volume: {int(vol * 100)}%")
+
+def VolumeDown(event):
+    global vol
+    print(event)
+    if mixer.music.get_volume() > 0.1:
+        vol -= 0.1
+        mixer.music.set_volume(vol)
+        freeLabel.config(text=f"Volume: {int(vol * 100)}%")
+    else:
+        freeLabel.config(text=f"Volume: 10%")
+
 
 
 #=================================================#
@@ -141,7 +169,6 @@ def Next():
 def Plist():
     Top(mList, mzkName, file_name)
     
-
 
 def Quit():
     master.destroy()
@@ -272,9 +299,9 @@ def EndEvent():
                 file_name.config(text=mzkName[mzk + 1])
             except IndexError:
                 print("Last Song Ended")
-                master.destroy()
-
-        mzk = mList.index(mList[mzk]) + 1
+                # master.destroy()
+        if mList.index(mList[mzk]) < len(mList):
+            mzk = mList.index(mList[mzk]) + 1
 
     master.after(1000, EndEvent)
 
@@ -306,6 +333,8 @@ ctrlFrame.grid(column=0, padx=20, pady=2, sticky='ew')
 
 imgViewer = Label(iFrame, bg='black', image=iFile)
 imgViewer.grid(row=0, column=0, sticky='news')
+imgViewer.dnd_bind("<Double - 1>", VolumeUp)
+imgViewer.dnd_bind("<Button - 3>", VolumeDown)
 
 file_name = Label(nameFrame, font='Mono 9',
                   text=mzkName[0], bg='black', fg='white')
@@ -372,7 +401,8 @@ class Top(Toplevel):
         self.name_list = name_list
         self.label_name = label_name
 
-        self.config(width=400, height=300)
+        self.title("PlayList")
+        self.minsize(width=400, height=300)
         self.grab_set()
 
         self.lbox = Listbox(self)
@@ -412,11 +442,10 @@ class Top(Toplevel):
         else:
             file = event.data[1:-1]
             name = file.split("/")[-1]
-            self.name_list.append(name)
-            self.song_list.append(file)
+            mzkName.append(name)
+            mList.append(file)
             self.lbox.insert("end", name)
-
-            print(self.song_list)
+        print(mList)
 
 
 
