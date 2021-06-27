@@ -68,6 +68,30 @@ iFile = iList[icount]
 #             CONTROL FUNCTIONS                   #
 #=================================================#
 
+def MasterShortcuts(event):
+    print(event)
+    if event.char == " ":
+        if mixer.music.get_pos() > 0.2:
+            Pause()
+        else:
+            Play()
+    
+    elif event.char == "a":
+        Back()
+
+    elif event.char == "d":
+        Next()
+
+    elif event.char == "w":
+        VolumeUp(event)
+
+    elif event.char == "s":
+        VolumeDown(event)
+    
+    elif event.char == "l":
+        Plist()
+
+
 def Back():
 
     global icount, iFile, mzk
@@ -97,7 +121,7 @@ def Play():
 
 
 def Pause():
-    GetPos()
+
     global icount, iFile, mzk
 
     if mixer.music.get_busy():
@@ -135,26 +159,28 @@ def Next():
 
 def VolumeUp(event):
     global vol
-
-    print(mixer.music.get_volume())
     
-    if mixer.music.get_volume() >= 0.9899:
-        vol_state = "Volume: 100%"
-        freeLabel.config(text=vol_state)
-    else:
-        vol = mixer.music.get_volume() + 0.1
-        mixer.music.set_volume(vol)
-        freeLabel.config(text=f"Volume: {int(vol * 100)}%")
+    if event.num == 1 or event.char == "w":
+
+        if mixer.music.get_volume() >= 0.9899:
+            vol_state = "Volume: 100%"
+            freeLabel.config(text=vol_state)
+        else:
+            vol = mixer.music.get_volume() + 0.1
+            mixer.music.set_volume(vol)
+            freeLabel.config(text=f"Volume: {int(vol * 100)}%")
+
 
 def VolumeDown(event):
     global vol
-    print(event)
-    if mixer.music.get_volume() > 0.1:
-        vol -= 0.1
-        mixer.music.set_volume(vol)
-        freeLabel.config(text=f"Volume: {int(vol * 100)}%")
-    else:
-        freeLabel.config(text=f"Volume: 10%")
+
+    if event.num == 3 or event.char == "s":
+        if mixer.music.get_volume() > 0.1:
+            vol -= 0.1
+            mixer.music.set_volume(vol)
+            freeLabel.config(text=f"Volume: {int(vol * 100)}%")
+        else:
+            freeLabel.config(text=f"Volume: 10%")
 
 
 
@@ -284,22 +310,29 @@ def EndEvent():
     if mixer.music.get_busy():
         pass
     else:
-        if mzk == 0:
-            pass
+        # if mzk == 0:
+        #     pass
+
+        if mzk == 0 and mixer.music.get_pos() > 0.5:
+            print("If statement")
+            mzk += 1
+            print(mzk)
             # mixer.music.load(mList[mzk])
             # mixer.music.play()
 
         elif mixer.music.get_pos() <= 0 and mzk + 1 < len(mList):
-            print(mzk)
-            try:
-                mixer.music.load(mList[mzk + 1])
-                mixer.music.play()
-                file_name.config(text=mzkName[mzk + 1])
-                mzk = mList.index(mList[mzk]) + 1
-            
-            except IndexError:
-                print("Last Song Ended")
-                # master.destroy()
+            if mzk == 0:
+                pass
+            else:
+                print("Elif")
+                try:
+                    mixer.music.load(mList[mzk + 1])
+                    mixer.music.play()
+                    file_name.config(text=mzkName[mzk + 1])
+                    mzk = mList.index(mList[mzk]) + 1
+                
+                except IndexError:
+                    print("Last Song Ended")
        
         # if mzk + 1 < len(mList):
         #     mzk = mList.index(mList[mzk]) + 1
@@ -334,8 +367,8 @@ ctrlFrame.grid(column=0, padx=20, pady=2, sticky='ew')
 
 imgViewer = Label(iFrame, bg='black', image=iFile)
 imgViewer.grid(row=0, column=0, sticky='news')
-imgViewer.dnd_bind("<Double - 1>", VolumeUp)
-imgViewer.dnd_bind("<Button - 3>", VolumeDown)
+imgViewer.bind("<Double - 1>", VolumeUp)
+imgViewer.bind("<Button - 3>", VolumeDown)
 
 file_name = Label(nameFrame, justify="left", width=16, font='Mono 8 italic',
                   text=mzkName[mzk], bg='black', fg='white')
@@ -350,13 +383,13 @@ time_stamp.pack(fill="x")
 back = Button(ctrlFrame, image=backIcon, bg='black', bd=0, command=Back)
 play = Button(ctrlFrame, image=playIcon, bg='black', bd=0, command=Play)
 pause = Button(ctrlFrame, image=pauseIcon, bg='black', bd=0, command=Pause)
-Next = Button(ctrlFrame, image=nextIcon, bd=0, bg='black', command=Next)
+next_ = Button(ctrlFrame, image=nextIcon, bd=0, bg='black', command=Next)
 freeLabel = Label(ctrlFrame, height=1, bd=0, bg='black')
 
 back.grid(row=0, column=0, padx=5, pady=2, sticky='we')
 play.grid(row=0, column=1, padx=5, pady=2, sticky='we')
 pause.grid(row=0, column=2, padx=5, pady=2, sticky='we')
-Next.grid(row=0, column=3, padx=5, pady=2, sticky='we')
+next_.grid(row=0, column=3, padx=5, pady=2, sticky='we')
 freeLabel.grid(row=1, column=0, columnspan=4, sticky='news')
 
 
@@ -480,6 +513,9 @@ GetPos()
 EndEvent()
 
 master.update()
+
+master.bind("<Key>", MasterShortcuts)
+master.bind("<Button 3>", MasterShortcuts)
 
 master.mainloop()
 
