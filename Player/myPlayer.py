@@ -274,7 +274,7 @@ def GetPos():
 
     master.after(1000, GetPos)
     time_stamp.config(
-        text=f"Duration: {counter}:{current} min",
+        text=f"{counter}:{current} min \t\t {mzk + 1}/{len(mList)}",
         font='Mono 8 italic', fg='white')
 
 
@@ -285,19 +285,24 @@ def EndEvent():
         pass
     else:
         if mzk == 0:
-            mixer.music.load(mList[mzk])
-            mixer.music.play()
+            pass
+            # mixer.music.load(mList[mzk])
+            # mixer.music.play()
 
-        elif mixer.music.get_pos() <= 0 and mzk < len(mList):
+        elif mixer.music.get_pos() <= 0 and mzk + 1 < len(mList):
+            print(mzk)
             try:
                 mixer.music.load(mList[mzk + 1])
                 mixer.music.play()
                 file_name.config(text=mzkName[mzk + 1])
+                mzk = mList.index(mList[mzk]) + 1
+            
             except IndexError:
                 print("Last Song Ended")
                 # master.destroy()
-        if mzk < len(mList):
-            mzk = mList.index(mList[mzk]) + 1
+       
+        # if mzk + 1 < len(mList):
+        #     mzk = mList.index(mList[mzk]) + 1
 
     master.after(1000, EndEvent)
 
