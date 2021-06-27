@@ -3,7 +3,9 @@ from TkinterDnD2 import DND_FILES, TkinterDnD
 from tkinter import *
 from tkinter import ttk
 from PIL import ImageTk, Image
-import os
+import os, sys
+from mutagen.mp3 import MP3
+from mutagen.wave import WAVE
 
 
 mixer.init()
@@ -27,7 +29,7 @@ theme.theme_use("alt")
 
 def LoadingFiles(images, songs, names):
 
-    for root, dirs, files in os.walk(os.path.abspath(r'.')):
+    for root, dirs, files in os.walk(os.path.abspath(r'./images/')):
 
         for file in files:
             if '.png' in file:
@@ -54,11 +56,11 @@ NameList = []
 iList, mList, mzkName = LoadingFiles(ImageList, SongList, NameList)
 
 # Loading Icon Buttons
-backIcon = ImageTk.PhotoImage(Image.open(os.path.abspath("./icons/back.png")))
-playIcon = ImageTk.PhotoImage(Image.open(os.path.abspath("./icons/play.png")))
+backIcon = ImageTk.PhotoImage(Image.open(os.path.abspath(r"./icons/back.png")))
+playIcon = ImageTk.PhotoImage(Image.open(os.path.abspath(r"./icons/play.png")))
 pauseIcon = ImageTk.PhotoImage(Image.open(
-    os.path.abspath("./icons/pause.png")))
-nextIcon = ImageTk.PhotoImage(Image.open(os.path.abspath("./icons/next.png")))
+    os.path.abspath(r"./icons/pause.png")))
+nextIcon = ImageTk.PhotoImage(Image.open(os.path.abspath(r"./icons/next.png")))
 
 icount = mzk = counter = current = 0
 vol = 0.9921875
@@ -69,7 +71,7 @@ iFile = iList[icount]
 #=================================================#
 
 def MasterShortcuts(event):
-    print(event)
+    # print(event)
     if event.char == " ":
         if mixer.music.get_pos() > 0.2:
             Pause()
@@ -82,10 +84,10 @@ def MasterShortcuts(event):
     elif event.char == "d":
         Next()
 
-    elif event.char == "w":
+    elif event.num == 4 or event.char == "w":
         VolumeUp(event)
 
-    elif event.char == "s":
+    elif event.num == 5 or event.char == "s":
         VolumeDown(event)
     
     elif event.char == "l":
@@ -95,29 +97,33 @@ def MasterShortcuts(event):
 def Back():
 
     global icount, iFile, mzk
-
-    if mzk == 0:
-        if icount == 0:
+    try:
+        if mzk == 0:
+            if icount == 0:
+                pass
             pass
+
+        else:
+            mzk -= 1
+
+            mixer.music.load(mList[mzk])
+            mixer.music.play()
+            if iList.index(iFile) > 0:
+                icount -= 1
+                iFile = iList[icount]
+
+        imgViewer.config(image=iFile)
+        file_name.config(text=mzkName[mzk])
+    except IndexError:
         pass
 
-    else:
-        mzk -= 1
+def Play():
+    if mList == []:
+        Plist()
 
+    else:
         mixer.music.load(mList[mzk])
         mixer.music.play()
-        if iList.index(iFile) > 0:
-            icount -= 1
-            iFile = iList[icount]
-
-    imgViewer.config(image=iFile)
-    file_name.config(text=mzkName[mzk])
-
-
-def Play():
-
-    mixer.music.load(mList[mzk])
-    mixer.music.play()
 
 
 def Pause():
@@ -135,32 +141,34 @@ def Next():
 
     global icount, iFile, mzk
 
-    if mList.index(mList[mzk]) + 1 == len(mList):
-        pass
-
-    else:
-        try:
-            mzk += 1
-            mixer.music.load(mList[mzk])
-            mixer.music.play()
-            if icount + 1 == len(iList):
-                pass
-            else:
-                icount += 1
-                iFile = iList[icount]
-
-            imgViewer.config(image=iFile)
-            file_name.config(text=mzkName[mzk])
-        except IndexError:
+    try:
+        if mList.index(mList[mzk]) + 1 == len(mList):
             pass
-        except:
-            mzk -= 1
 
+        else:
+            try:
+                mzk += 1
+                mixer.music.load(mList[mzk])
+                mixer.music.play()
+                if icount + 1 == len(iList):
+                    pass
+                else:
+                    icount += 1
+                    iFile = iList[icount]
+
+                imgViewer.config(image=iFile)
+                file_name.config(text=mzkName[mzk])
+            except IndexError:
+                pass
+            except:
+                mzk -= 1
+    except IndexError:
+        pass
 
 def VolumeUp(event):
     global vol
     
-    if event.num == 1 or event.char == "w":
+    if event.num == 4 or event.char == "w":
 
         if mixer.music.get_volume() >= 0.9899:
             vol_state = "Volume: 100%"
@@ -174,14 +182,13 @@ def VolumeUp(event):
 def VolumeDown(event):
     global vol
 
-    if event.num == 3 or event.char == "s":
+    if event.num == 5 or event.char == "s":
         if mixer.music.get_volume() > 0.1:
             vol -= 0.1
             mixer.music.set_volume(vol)
             freeLabel.config(text=f"Volume: {int(vol * 100)}%")
         else:
             freeLabel.config(text=f"Volume: 10%")
-
 
 
 #=================================================#
@@ -203,13 +210,11 @@ def Version():
 
     ver = '''
 Name: myPlayer
-Version: 0.1
-Code Date: Jun 09 2021
+Version: 0.9
 Languages: English UK
 Coded in: Python & Tkinter
 
     '''
-
     Message(win, justify="left", font="Mono 10 italic",
             text=ver, anchor="w").pack()
 
@@ -226,7 +231,6 @@ Company: Minux_Dev Inc.
 Is an authodidate programmer
 who is still learning the basics
 about programming in general.
-
     '''
 
     Message(win, justify="left", font="Mono 10 italic",
@@ -254,9 +258,9 @@ def Red():
 def Green():
     master.config(bg='green')
     ctrlFrame.config(bg="green")
-    file_name.config(bg="green", fg="black")
-    freeLabel.config(bg="green", fg="black")
-    menuBar.config(bg="green", fg="black")
+    file_name.config(bg="green", fg="white")
+    freeLabel.config(bg="green", fg="white")
+    menuBar.config(bg="green", fg="white")
     time_stamp.config(bg="green")
 
 
@@ -282,10 +286,30 @@ def Default():
 #=================================================#
 #              FUNCTIONS IN LOOP                  #
 #=================================================#
+
+def Length(mzk):
+    try:
+        f = mList[mzk]
+        if ".mp3" in f:
+            audio = MP3(f)
+        else:
+            audio = WAVE(f)
+            
+        song_length = (int(audio.info.length) // 60)
+        song_length = f"{song_length}.{int(audio.info.length) % 60}"
+
+        return float(song_length)
+
+    except IndexError:
+        pass    
+
+
 def GetPos():
     global counter, current
 
     time = mixer.music.get_pos() // 1000
+
+    song_length = Length(mzk)
 
     if time == 0:
         counter = current = 0
@@ -298,10 +322,18 @@ def GetPos():
     if mixer.music.get_busy():
         current += 1
 
-    master.after(1000, GetPos)
+    if mList == []:
+        m = 0
+    elif len(mList) == 1:
+        m = 1
+    else:
+        m = mzk + 1
+
     time_stamp.config(
-        text=f"{counter}:{current} min \t\t {mzk + 1}/{len(mList)}",
+        text=f"{counter}:{current} / {song_length} min \t\t {m}/{len(mList)}",
         font='Mono 8 italic', fg='white')
+
+    master.after(1000, GetPos)  
 
 
 def EndEvent():
@@ -309,33 +341,18 @@ def EndEvent():
 
     if mixer.music.get_busy():
         pass
-    else:
-        # if mzk == 0:
-        #     pass
 
-        if mzk == 0 and mixer.music.get_pos() > 0.5:
-            print("If statement")
-            mzk += 1
-            print(mzk)
-            # mixer.music.load(mList[mzk])
-            # mixer.music.play()
+    else:   
+        if mixer.music.get_pos() <= 0 and mzk + 1 < len(mList):
+            try:
+                mzk = mList.index(mList[mzk]) + 1
 
-        elif mixer.music.get_pos() <= 0 and mzk + 1 < len(mList):
-            if mzk == 0:
+                mixer.music.load(mList[mzk])
+                mixer.music.play()
+                file_name.config(text=mzkName[mzk])
+
+            except IndexError:
                 pass
-            else:
-                print("Elif")
-                try:
-                    mixer.music.load(mList[mzk + 1])
-                    mixer.music.play()
-                    file_name.config(text=mzkName[mzk + 1])
-                    mzk = mList.index(mList[mzk]) + 1
-                
-                except IndexError:
-                    print("Last Song Ended")
-       
-        # if mzk + 1 < len(mList):
-        #     mzk = mList.index(mList[mzk]) + 1
 
     master.after(1000, EndEvent)
 
@@ -367,11 +384,16 @@ ctrlFrame.grid(column=0, padx=20, pady=2, sticky='ew')
 
 imgViewer = Label(iFrame, bg='black', image=iFile)
 imgViewer.grid(row=0, column=0, sticky='news')
-imgViewer.bind("<Double - 1>", VolumeUp)
-imgViewer.bind("<Button - 3>", VolumeDown)
+# imgViewer.bind("<Double - 1>", VolumeUp)
+# imgViewer.bind("<Button - 3>", VolumeDown)
 
-file_name = Label(nameFrame, justify="left", width=16, font='Mono 8 italic',
-                  text=mzkName[mzk], bg='black', fg='white')
+if mzkName == []:
+    j = "No song playing"
+else:
+    j = mzkName[mzk]
+
+file_name = Label(nameFrame, width=16, font='Mono 8 italic',
+                  text=j, bg='black', fg='white')
 file_name.pack(fill='both')
 
 
@@ -384,7 +406,8 @@ back = Button(ctrlFrame, image=backIcon, bg='black', bd=0, command=Back)
 play = Button(ctrlFrame, image=playIcon, bg='black', bd=0, command=Play)
 pause = Button(ctrlFrame, image=pauseIcon, bg='black', bd=0, command=Pause)
 next_ = Button(ctrlFrame, image=nextIcon, bd=0, bg='black', command=Next)
-freeLabel = Label(ctrlFrame, height=1, bd=0, bg='black')
+freeLabel = Label(ctrlFrame, height=1, bd=0, bg='black',text="Made by Minux_Dev",
+    fg="white")
 
 back.grid(row=0, column=0, padx=5, pady=2, sticky='we')
 play.grid(row=0, column=1, padx=5, pady=2, sticky='we')
@@ -418,7 +441,7 @@ about.add_command(label="Author", command=Author)
 
 menuBar.add_cascade(label="File", menu=file)
 menuBar.add_cascade(label="View", menu=view)
-menuBar.add_cascade(label="About", menu=about)
+menuBar.add_cascade(label="Help", menu=about)
 
 master.config(menu=menuBar)
 
@@ -436,10 +459,10 @@ class Top(Toplevel):
         self.label_name = label_name
 
         self.title("PlayList")
-        self.minsize(width=400, height=300)
+        self.minsize(width=400, height=350)
         self.grab_set()
 
-        self.lbox = Listbox(self)
+        self.lbox = Listbox(self, selectmode="extended")
         self.lbox.grid(padx=5, pady=5, sticky="news")
 
         Grid.rowconfigure(self, 0, weight=1)
@@ -453,6 +476,7 @@ class Top(Toplevel):
 
         self.Play_list()
 
+
     def Play_list(self):
 
         self.lbox.delete(0, END)
@@ -461,61 +485,80 @@ class Top(Toplevel):
             item = f"{n+1}. {item}"
             self.lbox.insert(END, item)
 
+
     def Play_selected_song(self, event):
         try:
             song = self.lbox.curselection()[0]
             mixer.music.load(self.song_list[song])
             mixer.music.play()
             self.label_name.config(text=self.name_list[song])
+            mzk = song
+            print(mzk)
         except IndexError:
             pass
     
+
     def Add_File(self, event):
-        if ".wav" not in event.data:
-            pass
-        else:
-            dropped = event.data[1:]
+        if (".mp3") or ".wav" in event.data:
+            dropped = event.data[1:]        
             if dropped[-1] == "}":
-                print("If Statement")
                 file = dropped[:-1]
             else:
-                print("Else Statement")
                 file = dropped
 
             name = file.split("/")[-1]
             mzkName.append(name)
             mList.append(file)
             self.lbox.insert("end", name)
-        print(mList)
-    
+        else:
+            pass
+            
+
     def ShortCuts(self, event):
-        print(event)
-        item = self.lbox.curselection()[0]
-        if event.char == "\x7f":
-            print(item)
-            self.lbox.delete(item)
-            mList.pop(item)
-            self.name_list.pop(item)
-            print(mList)
+        # print(event)
+        try:
+            item = self.lbox.curselection()[0]
 
-        elif event.char == "\r":
-            mixer.music.load(mList[item])
-            mixer.music.play()
-            self.label_name.config(text=self.name_list[item])
-            mzk = self.name_list.index(mList[item])
-            print(len(mzk))
+            if event.char == "\x7f" or event.keysym == "Delete":
+                self.lbox.delete(item)
+                mList.pop(item)
+                self.name_list.pop(item)
 
+                if mList == []:
+                    mixer.music.stop()
+                    time_stamp.config(
+                        text=f"0:00 min \t\t 0/{len(mList)}",
+                        font='Mono 8 italic', fg='white')
 
-master.focus()
+            elif event.char == "\r":
+                mixer.music.load(mList[item])
+                mixer.music.play()
+                self.label_name.config(text=self.name_list[item])
+                mzk = self.name_list.index(mList[item])
 
+            elif event.char == "l":
+                pass
+
+            elif event:
+                MasterShortcuts(event)
+        except IndexError:
+            pass
+            
 GetPos()
 
 EndEvent()
 
+
 master.update()
 
+if sys.platform == "Linux":
+    master.bind("<Button 4>", MasterShortcuts)
+    master.bind("<Button 5>", MasterShortcuts)
+else:
+    pass
+    #master.bind("<MouseWheel>", MasterShortcuts)
+
 master.bind("<Key>", MasterShortcuts)
-master.bind("<Button 3>", MasterShortcuts)
 
 master.mainloop()
 
