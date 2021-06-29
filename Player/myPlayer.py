@@ -17,12 +17,6 @@ master.minsize(250, 300)
 master.resizable(False, False)
 master.config(bg='black')
 
-# Defining them (available native themes [clam, xpnative, 
-# vista, classic, winnative, alt])
-
-theme = ttk.Style()
-theme.theme_use("alt")
-
 #=================================================#
 #                   VARIABLES                     #
 #=================================================#
@@ -111,7 +105,7 @@ def Back():
         else:
             mzk -= 1
             Load_Play()
-            
+
             if iList.index(iFile) > 0:
                 icount -= 1
                 iFile = iList[icount]
