@@ -1,0 +1,7 @@
+UPDATED VERSIONS OF:
+    pygame
+    tkinter
+    TkinterDnD2
+    mutagen
+    pillow
+    
