@@ -138,26 +138,29 @@ def Next():
 
     global icount, iFile, mzk
 
-    if mList.index(mList[mzk]) + 1 == len(mList):
-        pass
-
-    else:
-        try:
-            mzk += 1
-            Load_Play()
-
-            if icount + 1 == len(iList):
-                pass
-            else:
-                icount += 1
-                iFile = iList[icount]
-
-            imgViewer.config(image=iFile)
-        except IndexError:
+    try:
+        if mList.index(mList[mzk]) + 1 == len(mList):
             pass
-        
-        mzk -= 1
 
+        else:
+            try:
+                mzk += 1
+                mixer.music.load(mList[mzk])
+                mixer.music.play()
+                if icount + 1 == len(iList):
+                    pass
+                else:
+                    icount += 1
+                    iFile = iList[icount]
+
+                imgViewer.config(image=iFile)
+                file_name.config(text=mzkName[mzk])
+            except IndexError:
+                pass
+            except:
+                mzk -= 1
+    except IndexError:
+        pass
 
 def VolumeUp(event):
     global vol
@@ -321,7 +324,10 @@ def Length(mzk):
 def GetPos():
     global counter, current
 
-    time = mixer.music.get_pos() // 1000
+    if mixer.music.get_pos() == -1:
+        time = 0
+    else:
+        time = mixer.music.get_pos() // 1000
 
     song_length = Length(mzk)
 
@@ -342,6 +348,8 @@ def GetPos():
         m = 1
     else:
         m = mzk + 1
+    
+    print(f"Current time: {counter}:{current}")
 
     time_stamp.config(
         text=f"{counter}:{current} / {song_length} min \t\t {m}/{len(mList)}",
